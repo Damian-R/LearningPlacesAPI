@@ -1,6 +1,7 @@
 package com.example.damia.learningplacesapi.activities;
 
 import android.Manifest;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.support.annotation.NonNull;
@@ -10,21 +11,30 @@ import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.example.damia.learningplacesapi.R;
 import com.example.damia.learningplacesapi.fragments.MainFragment;
+import com.google.android.gms.ads.MobileAds;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.PendingResult;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.LocationSettingsRequest;
+import com.google.android.gms.location.LocationSettingsResult;
+import com.google.android.gms.location.SettingsApi;
+import com.google.android.gms.location.places.Place;
+import com.google.android.gms.location.places.Places;
+import com.google.android.gms.location.places.ui.PlacePicker;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.tasks.Task;
 
 import static android.Manifest.permission.ACCESS_FINE_LOCATION;
 
@@ -32,6 +42,7 @@ public class MapsActivity extends FragmentActivity implements GoogleApiClient.On
 
     private GoogleApiClient mGoogleApiClient;
     private MainFragment mainFragment;
+    LocationRequest req;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,6 +53,8 @@ public class MapsActivity extends FragmentActivity implements GoogleApiClient.On
                 .enableAutoManage(this, this)
                 .addConnectionCallbacks(this)
                 .addApi(LocationServices.API)
+                .addApi(Places.GEO_DATA_API)
+                .addApi(Places.PLACE_DETECTION_API)
                 .build();
 
         mainFragment = (MainFragment)getSupportFragmentManager().findFragmentById(R.id.container);
@@ -68,13 +81,12 @@ public class MapsActivity extends FragmentActivity implements GoogleApiClient.On
         Log.v("Maps", "Location services started");
 
         try {
-            LocationRequest req = LocationRequest.create().setPriority(LocationRequest.PRIORITY_LOW_POWER);
+            req = LocationRequest.create().setPriority(LocationRequest.PRIORITY_LOW_POWER);
             LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, req, this);
+            checkUserSettings();
         }catch (SecurityException exception){
             Log.v("Maps", exception.toString());
         }
-
-
     }
 
     @Override
@@ -111,6 +123,9 @@ public class MapsActivity extends FragmentActivity implements GoogleApiClient.On
             Log.v("Maps", "Permission already granted");
             startLocationServices();
         }
+
+
+
     }
 
     @Override
@@ -123,6 +138,8 @@ public class MapsActivity extends FragmentActivity implements GoogleApiClient.On
         Log.v("Maps", "Connection failed");
     }
 
+    public void checkUserSettings(){
+        LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder().addLocationRequest(req);
 
-
+    }
 }
